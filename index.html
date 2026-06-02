@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Empires of 1451</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700;900&family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dark: #8b6914;
+    --blood: #8b1a1a;
+    --blood-light: #b22222;
+    --blood-dark: #5a0f0f;
+    --dark: #0a0805;
+    --dark2: #110e09;
+    --dark3: #1a1510;
+    --dark4: #231e16;
+    --text: #d4c4a0;
+    --text-muted: #8a7a60;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--dark);
+    color: var(--text);
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 18px;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* NOISE TEXTURE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    background: linear-gradient(to bottom, rgba(10,8,5,0.98), rgba(10,8,5,0.85));
+    border-bottom: 1px solid rgba(201,168,76,0.2);
+    backdrop-filter: blur(8px);
+  }
+
+  .nav-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-logo {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: 0.05em;
+    text-decoration: none;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .nav-links a:hover { color: var(--gold); }
+
+  .nav-cta {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--dark);
+    background: var(--gold);
+    padding: 0.5rem 1.25rem;
+    text-decoration: none;
+    transition: background 0.3s;
+  }
+
+  .nav-cta:hover { background: var(--gold-light); }
+
+  /* HERO */
+  .hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6rem 2rem 4rem;
+    overflow: hidden;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 40%, rgba(139,26,26,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 80% at 20% 100%, rgba(201,168,76,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 80% at 80% 100%, rgba(201,168,76,0.06) 0%, transparent 50%),
+      linear-gradient(to bottom, var(--dark) 0%, var(--dark2) 50%, var(--dark) 100%);
+  }
+
+  /* Decorative lines */
+  .hero-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(201,168,76,0.04) 80px),
+      repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(201,168,76,0.04) 80px);
+  }
+
+  .hero-emblem {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 2rem;
+  }
+
+  .hero-emblem svg { width: 100%; height: 100%; }
+
+  .hero-eyebrow {
+    position: relative;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  .hero-eyebrow::before,
+  .hero-eyebrow::after {
+    content: '';
+    display: block;
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold));
+  }
+
+  .hero-eyebrow::after {
+    background: linear-gradient(to left, transparent, var(--gold));
+  }
+
+  .hero-title {
+    position: relative;
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(2.5rem, 7vw, 5.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--gold-light);
+    text-shadow: 0 0 60px rgba(201,168,76,0.3), 0 2px 4px rgba(0,0,0,0.8);
+    margin-bottom: 0.25em;
+    letter-spacing: 0.02em;
+  }
+
+  .hero-title span {
+    display: block;
+    font-size: 0.45em;
+    letter-spacing: 0.3em;
+    color: var(--gold-dark);
+    font-weight: 400;
+  }
+
+  .hero-subtitle {
+    position: relative;
+    font-style: italic;
+    font-size: clamp(1rem, 2vw, 1.25rem);
+    color: var(--text-muted);
+    max-width: 600px;
+    margin: 1.5rem auto 3rem;
+  }
+
+  .hero-buttons {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .btn-primary {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--dark);
+    background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark));
+    padding: 1rem 2.5rem;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.3s;
+    border: 1px solid var(--gold);
+  }
+
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #f0d89a, var(--gold-light), var(--gold));
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(201,168,76,0.3);
+  }
+
+  .btn-secondary {
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: transparent;
+    padding: 1rem 2.5rem;
+    text-decoration: none;
+    border: 1px solid rgba(201,168,76,0.4);
+    transition: all 0.3s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--gold);
+    background: rgba(201,168,76,0.08);
+    transform: translateY(-2px);
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-muted);
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    animation: scrollBounce 2s ease-in-out infinite;
+  }
+
+  @keyframes scrollBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.5; }
+    50% { transform: translateX(-50%) translateY(6px); opacity: 1; }
+  }
+
+  .scroll-hint svg { width: 16px; height: 16px; }
+
+  /* DIVIDER */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 800px;
+    margin: 0 auto 4rem;
+    padding: 0 2rem;
+  }
+
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(201,168,76,0.3), transparent);
+  }
+
+  .divider-symbol {
+    color: var(--gold);
+    font-size: 1.2rem;
+  }
+
+  /* SECTIONS */
+  section {
+    position: relative;
+    padding: 6rem 2rem;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+    color: var(--gold-light);
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+
+  .section-desc {
+    text-align: center;
+    color: var(--text-muted);
+    font-style: italic;
+    max-width: 600px;
+    margin: 0 auto 4rem;
+  }
+
+  /* LORE SECTION */
+  .lore-section {
+    background: linear-gradient(to bottom, var(--dark), var(--dark2), var(--dark));
+  }
+
+  .lore-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+  }
+
+  .lore-text p {
+    margin-bottom: 1.2rem;
+    color: var(--text);
+    font-size: 1.05rem;
+  }
+
+  .lore-text p:first-child::first-letter {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: var(--gold);
+    float: left;
+    line-height: 0.8;
+    margin: 0.1em 0.1em 0 0;
+  }
+
+  .lore-quote {
+    background: var(--dark3);
+    border-left: 3px solid var(--gold);
+    padding: 2rem 2rem 2rem 2.5rem;
+    position: relative;
+  }
+
+  .lore-quote::before {
+    content: '"';
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 5rem;
+    color: var(--gold-dark);
+    position: absolute;
+    top: -0.5rem;
+    left: 1rem;
+    line-height: 1;
+    opacity: 0.5;
+  }
+
+  .lore-quote p {
+    font-style: italic;
+    font-size: 1.15rem;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+  }
+
+  .lore-quote cite {
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  /* FEATURES */
+  .features-section {
+    background: var(--dark);
+  }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+
+  .feature-card {
+    background: var(--dark3);
+    border: 1px solid rgba(201,168,76,0.15);
+    padding: 2.5rem 2rem;
+    position: relative;
+    transition: all 0.3s;
+  }
+
+  .feature-card:hover {
+    border-color: rgba(201,168,76,0.4);
+    background: var(--dark4);
+    transform: translateY(-4px);
+  }
+
+  .feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .feature-card:hover::before { opacity: 1; }
+
+  .feature-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1.25rem;
+    display: block;
+  }
+
+  .feature-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.1em;
+    color: var(--gold-light);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+  }
+
+  .feature-text {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* FACTIONS */
+  .factions-section {
+    background: linear-gradient(to bottom, var(--dark), var(--dark2), var(--dark));
+  }
+
+  .factions-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+  }
+
+  .faction-card {
+    position: relative;
+    padding: 2.5rem;
+    border: 1px solid rgba(201,168,76,0.2);
+    overflow: hidden;
+    transition: all 0.3s;
+  }
+
+  .faction-card:hover {
+    border-color: rgba(201,168,76,0.5);
+    transform: translateY(-3px);
+  }
+
+  .faction-bg {
+    position: absolute;
+    inset: 0;
+    opacity: 0.04;
+    font-size: 15rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    line-height: 1;
+  }
+
+  .faction-card:nth-child(1) { background: linear-gradient(135deg, rgba(139,26,26,0.15), var(--dark3)); }
+  .faction-card:nth-child(2) { background: linear-gradient(135deg, rgba(30,60,110,0.15), var(--dark3)); }
+  .faction-card:nth-child(3) { background: linear-gradient(135deg, rgba(30,80,30,0.15), var(--dark3)); }
+  .faction-card:nth-child(4) { background: linear-gradient(135deg, rgba(100,50,10,0.15), var(--dark3)); }
+
+  .faction-tag {
+    display: inline-block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid;
+    margin-bottom: 1rem;
+  }
+
+  .faction-card:nth-child(1) .faction-tag { color: #e05c5c; border-color: rgba(224,92,92,0.4); }
+  .faction-card:nth-child(2) .faction-tag { color: #5c8ae0; border-color: rgba(92,138,224,0.4); }
+  .faction-card:nth-child(3) .faction-tag { color: #5cb85c; border-color: rgba(92,184,92,0.4); }
+  .faction-card:nth-child(4) .faction-tag { color: #c8874e; border-color: rgba(200,135,78,0.4); }
+
+  .faction-name {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--gold-light);
+    margin-bottom: 0.75rem;
+  }
+
+  .faction-desc {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* RULES */
+  .rules-section {
+    background: var(--dark);
+  }
+
+  .rules-list {
+    max-width: 800px;
+    margin: 0 auto;
+    counter-reset: rules;
+  }
+
+  .rule-item {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    padding: 1.75rem 0;
+    border-bottom: 1px solid rgba(201,168,76,0.1);
+  }
+
+  .rule-item:last-child { border-bottom: none; }
+
+  .rule-num {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.5rem;
+    color: var(--gold-dark);
+    min-width: 2.5rem;
+    font-weight: 900;
+  }
+
+  .rule-content { flex: 1; }
+
+  .rule-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 0.4rem;
+  }
+
+  .rule-text {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  /* JOIN SECTION */
+  .join-section {
+    background: linear-gradient(to bottom, var(--dark), var(--dark2));
+    text-align: center;
+    padding-bottom: 8rem;
+  }
+
+  .join-box {
+    max-width: 700px;
+    margin: 0 auto;
+    background: var(--dark3);
+    border: 1px solid rgba(201,168,76,0.25);
+    padding: 4rem 3rem;
+    position: relative;
+  }
+
+  .join-box::before, .join-box::after {
+    content: '✦';
+    position: absolute;
+    font-size: 1.5rem;
+    color: var(--gold);
+    opacity: 0.3;
+  }
+
+  .join-box::before { top: 1rem; left: 1rem; }
+  .join-box::after { bottom: 1rem; right: 1rem; }
+
+  .join-title {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: clamp(1.5rem, 3vw, 2.2rem);
+    color: var(--gold-light);
+    margin-bottom: 1rem;
+  }
+
+  .join-text {
+    color: var(--text-muted);
+    font-style: italic;
+    margin-bottom: 2.5rem;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* FOOTER */
+  footer {
+    background: var(--dark);
+    border-top: 1px solid rgba(201,168,76,0.1);
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+
+  .footer-logo {
+    font-family: 'Cinzel Decorative', serif;
+    font-size: 1.25rem;
+    color: var(--gold);
+    margin-bottom: 0.5rem;
+  }
+
+  .footer-sub {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    list-style: none;
+    margin-bottom: 2rem;
+  }
+
+  .footer-links a {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+
+  .footer-links a:hover { color: var(--gold); }
+
+  .footer-copy {
+    font-size: 0.8rem;
+    color: rgba(138,122,96,0.5);
+  }
+
+  /* MOBILE */
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .lore-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr; }
+    .factions-grid { grid-template-columns: 1fr; }
+    .join-box { padding: 2.5rem 1.5rem; }
+  }
+
+  @media (max-width: 480px) {
+    .features-grid { grid-template-columns: 1fr; }
+    .nav-logo { font-size: 0.8rem; }
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .hero-emblem { animation: fadeUp 0.8s ease both; }
+  .hero-eyebrow { animation: fadeUp 0.8s ease 0.2s both; }
+  .hero-title { animation: fadeUp 0.8s ease 0.35s both; }
+  .hero-subtitle { animation: fadeUp 0.8s ease 0.5s both; }
+  .hero-buttons { animation: fadeUp 0.8s ease 0.65s both; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">Empires of 1451</a>
+    <ul class="nav-links">
+      <li><a href="#lore">Lore</a></li>
+      <li><a href="#features">Özellikler</a></li>
+      <li><a href="#factions">Fraksiyonlar</a></li>
+      <li><a href="#rules">Kurallar</a></li>
+    </ul>
+    <a href="#join" class="nav-cta">Katıl</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="home">
+  <div class="hero-bg"></div>
+
+  <div class="hero-emblem">
+    <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon points="60,8 74,44 112,44 82,68 94,104 60,82 26,104 38,68 8,44 46,44" fill="none" stroke="#c9a84c" stroke-width="1.5" opacity="0.6"/>
+      <polygon points="60,22 70,50 100,50 77,66 86,94 60,76 34,94 43,66 20,50 50,50" fill="rgba(201,168,76,0.08)" stroke="#c9a84c" stroke-width="1"/>
+      <circle cx="60" cy="60" r="12" fill="rgba(201,168,76,0.15)" stroke="#c9a84c" stroke-width="1.5"/>
+      <circle cx="60" cy="60" r="4" fill="#c9a84c"/>
+      <line x1="60" y1="22" x2="60" y2="38" stroke="#c9a84c" stroke-width="1" opacity="0.5"/>
+      <line x1="60" y1="82" x2="60" y2="98" stroke="#c9a84c" stroke-width="1" opacity="0.5"/>
+      <line x1="22" y1="50" x2="38" y2="56" stroke="#c9a84c" stroke-width="1" opacity="0.5"/>
+      <line x1="82" y1="64" x2="98" y2="50" stroke="#c9a84c" stroke-width="1" opacity="0.5"/>
+    </svg>
+  </div>
+
+  <div class="hero-eyebrow">Roblox Roleplay</div>
+
+  <h1 class="hero-title">
+    Empires of 1451
+    <span>Kılıç ve Taç</span>
+  </h1>
+
+  <p class="hero-subtitle">
+    İstanbul'un düştüğü yıl. İmparatorluklar yükseliyor, hanedanlar çöküyor.
+    Sen hangi tarafı seçeceksin?
+  </p>
+
+  <div class="hero-buttons">
+    <a href="https://www.roblox.com" target="_blank" class="btn-primary">⚔ Oyuna Gir</a>
+    <a href="#lore" class="btn-secondary">Hikayeyi Keşfet</a>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Aşağı Kaydır</span>
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M8 3v10M4 9l4 4 4-4"/>
+    </svg>
+  </div>
+</section>
+
+<!-- LORE -->
+<section class="lore-section" id="lore">
+  <div class="container">
+    <p class="section-label">✦ Tarih ✦</p>
+    <h2 class="section-title">Kıyametin Eşiği</h2>
+    <p class="section-desc">1451. Konstantinopolis surları yıkılmak üzere, bir çağ kapanıyor.</p>
+
+    <div class="lore-grid">
+      <div class="lore-text">
+        <p>Doğu Roma İmparatorluğu'nun son kalesi sallanıyor. Genç Osmanlı Sultanı II. Mehmed, tarihin seyrini değiştirecek bir kuşatma için ordularını topluyor. Her tarafta entrika, ihanet ve kahramanlık iç içe geçmiş durumda.</p>
+        <p>Bu dünyada sen de bir parçasın. İster imparatorluğun hizmetinde bir şövalye, ister tahta yakın bir vezir, istersen sessiz sedasız hareket eden bir suikastçı ol. Her seçim tarihe iz bırakır.</p>
+        <p>Fraksiyonlar güç için savaşırken, sen de kendi destanını yazıyorsun. Kim olacağın tamamen sana kalmış.</p>
+      </div>
+
+      <div class="lore-quote">
+        <p>Dünyanın en büyük şehri düşecek mi yoksa direniş mi kazanacak? Bu sorunun cevabı senin elinde...</p>
+        <cite>— Empires of 1451 Manifestosu</cite>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div class="container">
+    <p class="section-label">✦ Özellikler ✦</p>
+    <h2 class="section-title">Neler Seni Bekliyor</h2>
+    <p class="section-desc">Derinlikli bir roleplay deneyimi için tasarlanmış özellikler.</p>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">⚔️</span>
+        <h3 class="feature-title">Savaş Sistemi</h3>
+        <p class="feature-text">Gerçekçi orta çağ dövüş mekaniği. Kılıç, yay ve mızrak ile savaşın, savunun ve fethledin.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">👑</span>
+        <h3 class="feature-title">Hiyerarşi Sistemi</h3>
+        <p class="feature-text">Sultan'dan köylüye uzanan katmanlı sosyal yapı. Görevler tamamlandıkça rütbeler yükselier.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🏰</span>
+        <h3 class="feature-title">Kale Kuşatmaları</h3>
+        <p class="feature-text">Devasa haritalar üzerinde gerçek zamanlı kuşatma savaşları. Top, ok yağmuru altında hayatta kal.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📜</span>
+        <h3 class="feature-title">Görev Sistemi</h3>
+        <p class="feature-text">Ana hikaye ve yan görevlerle dolu derin bir içerik. Her karar farklı sonuçlar doğurur.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🤝</span>
+        <h3 class="feature-title">İttifak Sistemi</h3>
+        <p class="feature-text">Fraksiyonlar arası diplomasi. İttifaklar kur, antlaşmalar yap ya da ihanet et.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🗺️</span>
+        <h3 class="feature-title">Açık Dünya</h3>
+        <p class="feature-text">1451 dönemine ait mimari ile tasarlanmış geniş şehirler, köyler ve çöl yolları.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FACTIONS -->
+<section class="factions-section" id="factions">
+  <div class="container">
+    <p class="section-label">✦ Fraksiyonlar ✦</p>
+    <h2 class="section-title">Hangi Bayrağın Altındasın?</h2>
+    <p class="section-desc">Dört büyük güç, tek bir taht için mücadele ediyor.</p>
+
+    <div class="factions-grid">
+      <div class="faction-card">
+        <div class="faction-bg">☽</div>
+        <span class="faction-tag">Savaşçı</span>
+        <h3 class="faction-name">Osmanlı Devleti</h3>
+        <p class="faction-desc">Yükselişin zirvesinde bir imparatorluk. Disiplinli Yeniçeri birlikleri ve güçlü topçusuyla yenilmez görünen ordu.</p>
+      </div>
+      <div class="faction-card">
+        <div class="faction-bg">✝</div>
+        <span class="faction-tag">Savunmacı</span>
+        <h3 class="faction-name">Bizans İmparatorluğu</h3>
+        <p class="faction-desc">Bin yıllık tarihin son temsilcileri. Surları yıkılmaz, tarihi ağır, imanı güçlü bir imparatorluğun bakiyeleri.</p>
+      </div>
+      <div class="faction-card">
+        <div class="faction-bg">⚓</div>
+        <span class="faction-tag">Tüccar</span>
+        <h3 class="faction-name">Ceneviz Cumhuriyeti</h3>
+        <p class="faction-desc">Para ve güç el ele gider. Boğaz'daki ticaret yollarına hakim bu şehir devleti her iki tarafa da satar.</p>
+      </div>
+      <div class="faction-card">
+        <div class="faction-bg">🗡</div>
+        <span class="faction-tag">Gizli</span>
+        <h3 class="faction-name">Haşhaşiler</h3>
+        <p class="faction-desc">Gölgede yaşayan, her yerde olan, kimse tarafından görülmeyen suikastçılar. Gerçek güç göz önünde değil, perde arkasındadır.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RULES -->
+<section class="rules-section" id="rules">
+  <div class="container">
+    <p class="section-label">✦ Kurallar ✦</p>
+    <h2 class="section-title">Onur Yasaları</h2>
+    <p class="section-desc">Her imparatorluğun kanunu vardır. Bunlara uy, sunucuda huzur olsun.</p>
+
+    <div class="rules-list">
+      <div class="rule-item">
+        <span class="rule-num">I</span>
+        <div class="rule-content">
+          <h3 class="rule-title">Karakter İçinde Kal</h3>
+          <p class="rule-text">Roleplay sırasında karakter dışına çıkma. OOC (Out of Character) konuşmak için parantez kullan: (( mesajın )).</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">II</span>
+        <div class="rule-content">
+          <h3 class="rule-title">Powergaming Yasak</h3>
+          <p class="rule-text">Diğer oyunculara zorla eylem yaptıramazsın. Her aksiyon karşı tarafa tepki hakkı tanır.</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">III</span>
+        <div class="rule-content">
+          <h3 class="rule-title">Saygılı Ol</h3>
+          <p class="rule-text">Karakter çatışması normaldir, oyuncu çatışması yasaktır. Aşağılayıcı dil ve hakaret kesinlikle yasaktır.</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">IV</span>
+        <div class="rule-content">
+          <h3 class="rule-title">Metagaming Yasak</h3>
+          <p class="rule-text">Karakterinin bilmediği bilgileri OOC'den öğrenip oyunda kullanamazsın.</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">V</span>
+        <div class="rule-content">
+          <h3 class="rule-title">Yöneticilere Uy</h3>
+          <p class="rule-text">Moderatör ve yöneticilerin kararlarına itiraz etme. Sorunlar için Discord üzerinden başvur.</p>
+        </div>
+      </div>
+      <div class="rule-item">
+        <span class="rule-num">VI</span>
+        <div class="rule-content">
+          <h3 class="rule-title">Lore'a Sadık Kal</h3>
+          <p class="rule-text">1451 dünyasının tarihine aykırı karakterler ve davranışlar kabul edilmez. Döneme uygun rol yap.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- JOIN -->
+<section class="join-section" id="join">
+  <div class="container">
+    <div class="join-box">
+      <h2 class="join-title">Destanını Yaz</h2>
+      <p class="join-text">
+        Binlerce oyuncu savaşırken sen nerede olacaksın? Tarihin seyrini değiştirme zamanı.
+      </p>
+      <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+        <a href="https://www.roblox.com" target="_blank" class="btn-primary">⚔ Roblox'ta Oyna</a>
+        <a href="https://discord.gg/" target="_blank" class="btn-secondary">Discord'a Katıl</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Empires of 1451</div>
+  <p class="footer-sub">Kılıç ve Taç · Roblox Roleplay</p>
+  <ul class="footer-links">
+    <li><a href="#lore">Lore</a></li>
+    <li><a href="#features">Özellikler</a></li>
+    <li><a href="#factions">Fraksiyonlar</a></li>
+    <li><a href="#rules">Kurallar</a></li>
+    <li><a href="#join">Katıl</a></li>
+  </ul>
+  <p class="footer-copy">© 2025 Empires of 1451. Tüm hakları saklıdır.</p>
+</footer>
+
+</body>
+</html>
